@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Merc Company Tracker</title>
+<style>
+:root{--bg:#f3f1ea;--panel:#fff;--ink:#1c2422;--dim:#5d6b66;--line:#cfd6d1;--acc:#9a7410;--btn:#e7ece8;--danger:#b4332d;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1514;--panel:#16201e;--ink:#e6efe9;--dim:#8fa59a;--line:#2b3d38;--acc:#d4a62a;--btn:#1f302c;--danger:#e0605a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1514;--panel:#16201e;--ink:#e6efe9;--dim:#8fa59a;--line:#2b3d38;--acc:#d4a62a;--btn:#1f302c;--danger:#e0605a;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.4 "Segoe UI",Helvetica,Arial,sans-serif;padding:12px;max-width:1100px;margin-inline:auto}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-bottom:12px}
+h1{font-size:20px;margin:0;color:var(--acc);letter-spacing:.04em;text-transform:uppercase}
+h2{font-size:13px;margin:0 0 8px;color:var(--acc);text-transform:uppercase;letter-spacing:.08em}
+button,select,input,textarea{font:inherit;color:var(--ink);background:var(--btn);border:1px solid var(--line);border-radius:4px;padding:6px 10px}
+input,textarea,select{background:var(--panel);min-width:0}
+textarea{width:100%;resize:vertical}
+button{cursor:pointer}button:hover:not(:disabled){border-color:var(--acc)}button:disabled{opacity:.45;cursor:default}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,a:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
+.tab.on{background:var(--acc);color:#111;border-color:var(--acc);font-weight:600}
+.layout{display:grid;grid-template-columns:220px 1fr;gap:12px;align-items:start}
+@media (max-width:720px){.layout{grid-template-columns:1fr}}
+.side{display:flex;flex-direction:column;gap:6px}
+.pl{display:flex;justify-content:space-between;gap:8px;text-align:left}.pl small{color:var(--dim)}.pips{font-size:11px;letter-spacing:1px;margin-left:6px;white-space:nowrap}
+.pl.on{border-color:var(--acc);box-shadow:inset 3px 0 0 var(--acc)}
+.sec{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px;margin-bottom:12px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
+.f{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--dim);flex:1;min-width:120px}
+.f input{font-size:15px;color:var(--ink)}
+.f.n{flex:0 0 78px;min-width:78px}
+.f.wide{flex:2 1 230px;min-width:230px}
+.f.wide input{padding:9px 12px}
+.bal{font-size:24px;color:var(--acc)}
+.log{margin:8px 0 0;padding:0;list-style:none;font-size:12px;color:var(--dim)}
+.q{display:grid;gap:6px;border-top:1px solid var(--line);padding:8px 0}
+.q .top{display:flex;gap:8px}.q .top input{flex:1}
+.ticks{display:flex;gap:16px}.tk{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:12px;color:var(--dim)}
+.tk input{width:28px;height:28px;accent-color:var(--danger)}.tk span{font-size:14px;font-weight:600;color:var(--ink)}.kia{margin-left:8px;padding-left:16px;border-left:1px solid var(--line)}.kia span{color:var(--danger);font-weight:800}.pw{display:flex;flex-direction:column;gap:6px;align-items:center}.pic{width:110px;height:110px;border:1px solid var(--line);border-radius:6px;background:var(--bg);display:flex;align-items:center;justify-content:center;color:var(--dim);font-size:12px;overflow:hidden}.pic img{width:100%;height:100%;object-fit:cover}.hdr,.sub{width:100%;background:transparent;border:0;border-bottom:1px dashed var(--line);border-radius:0;padding:4px 0}.hdr{font-size:22px;font-weight:700;color:var(--ink)}.sub{font-size:15px;color:var(--dim);margin-bottom:10px}.stat{display:flex;flex-direction:column;min-width:90px}.stat b{font-size:20px;color:var(--acc)}.stat span{font-size:12px;color:var(--dim)}.mnum{min-width:28px;text-align:center;font-size:18px}.sheetw{position:relative}.sheetw.dead>.sec:not(.injsec){opacity:.45}.stamp{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-14deg);font-size:min(22vw,150px);font-weight:900;line-height:1;letter-spacing:.08em;color:#d11a1a;border:.07em solid #d11a1a;padding:.02em .18em;border-radius:6px;opacity:.88;pointer-events:none}
+.kr{display:grid;grid-template-columns:auto 1fr 130px auto auto auto;gap:8px;align-items:center;border-top:1px solid var(--line);padding:8px 0}
+.kr small{grid-column:2/-1;color:var(--dim);margin-top:-4px}
+.kr input[type=checkbox]{width:22px;height:22px;accent-color:var(--acc)}
+@media (max-width:560px){.kr{grid-template-columns:auto 1fr auto auto}.kr .v{grid-column:2/-1}.kr .qt{grid-column:2/3}}
+.qt{display:flex;align-items:center;gap:4px}.qt b{min-width:34px;text-align:center;color:var(--acc)}.qt button{padding:4px 10px}
+.danger{color:var(--danger)}.empty,.hint{color:var(--dim)}
+a{color:var(--acc)}
+details{margin-top:16px;color:var(--dim)}
+.sec>.f{margin-top:10px}
+.tblw{overflow-x:auto}.tbl{width:100%;min-width:560px;border-collapse:collapse}.tbl th{text-align:left;font-size:12px;color:var(--dim);font-weight:600;padding:4px}.tbl td{padding:4px;border-top:1px solid var(--line)}.tbl td input,.tbl td select{width:100%}.tbl td.ty{width:140px}.tbl td.qty{width:84px}.tbl td.x{width:44px}.tbl td.dt{width:150px}.tbl.hist{min-width:680px}
+.emb .pic{width:170px;height:170px}.emb .pic img{object-fit:contain}
+.pic svg{width:100%;height:100%;display:block}
+.dwrap{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.die{width:88px;height:88px;border:2px solid var(--line);border-radius:16px;display:grid;grid-template:repeat(3,1fr)/repeat(3,1fr);padding:12px;background:var(--btn)}
+.die i{border-radius:50%;margin:2px}.die i.on{background:var(--ink)}
+.die.rolling{animation:dsh .16s linear infinite}
+@keyframes dsh{0%{transform:rotate(-6deg) translateY(-2px)}50%{transform:rotate(6deg) translateY(2px)}100%{transform:rotate(-6deg) translateY(-2px)}}
+.dres{font-size:60px;font-weight:800;line-height:1;color:var(--acc);min-width:90px}
+.dverdict{font-weight:700;min-height:20px;margin-top:4px}
+.rollbtn{font-size:18px;font-weight:700;padding:12px 30px}
+.thermo{width:100%;max-width:560px;height:auto;display:block;cursor:pointer;touch-action:none;margin-top:6px}
+.thermo:focus-visible{outline:2px solid var(--acc);outline-offset:4px;border-radius:10px}
+.thermo .tube{fill:var(--btn);stroke:var(--dim);stroke-width:2}
+.thermo .tbg{fill:var(--btn)}
+.thermo .cover{transition:transform .35s ease-out}
+.thermo .lvl{stroke:var(--ink);stroke-width:2.5;stroke-linecap:round;transition:transform .35s ease-out}
+.thermo .tk{stroke:var(--dim);stroke-width:1}
+.thermo .tl{fill:var(--dim);font:10px ui-monospace,Menlo,Consolas,monospace}
+.thermo .bl{font:800 12px ui-sans-serif,system-ui,sans-serif}
+.heatrow{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center}
+.heatnum{font-size:24px;font-weight:800;line-height:1.1}.heatmod{font-size:18px;font-weight:800}
+.heatctl{display:flex;gap:8px;align-items:center}.heatctl input{width:72px;text-align:center}
+
+.dfa-toggle{width:100%;text-align:left;font-weight:700;font-size:16px;padding:12px 14px}.dfabody{margin-top:12px}
+.dollbox{flex:none;width:240px;max-width:100%}.doll{width:240px;max-width:100%;height:auto;flex:none}
+.doll .p{fill:var(--btn);stroke:var(--dim);stroke-width:2;stroke-linejoin:round}
+.doll .dec{fill:var(--line)}
+.doll text{text-anchor:middle;font:700 12px ui-monospace,Menlo,Consolas,monospace;fill:var(--dim);pointer-events:none}
+.doll .rr{font-size:8px;letter-spacing:.1em}
+.doll g.hit .p{fill:#c40d0d;stroke:#ff8a8a;stroke-width:3;animation:hitp 1s ease-in-out infinite}
+.doll g.hit text{fill:#fff}
+@keyframes hitp{0%,100%{filter:drop-shadow(0 0 2px #ff3b3b)}50%{filter:drop-shadow(0 0 9px #ff3b3b)}}
+.hitwrap{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start}.hcol{flex:1;min-width:250px}
+.hloc{font-size:22px;font-weight:800;margin:8px 0 2px;min-height:28px}
+.banner{font-size:20px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin-top:6px}
+.banner.crit{color:#ff5a5a;font-size:26px;text-shadow:0 0 12px rgba(255,60,60,.8),0 0 28px rgba(255,120,40,.5)}
+.banner.head{color:#ffd34d;font-size:26px;text-shadow:0 0 12px rgba(255,211,77,.8),0 0 28px rgba(255,255,255,.4)}
+.banner.motive{color:#fff;text-shadow:0 0 10px rgba(170,210,255,.65)}
+.banner.motive{animation:fadein .5s ease-out}
+.banner.crit,.banner.head,.dres.crit,.dres.head{animation:popin .6s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes popin{0%{opacity:0;transform:scale(.4)}100%{opacity:1;transform:scale(1)}}
+.hitwrap.bg-crit{animation:flashR 1s ease-out 1}.hitwrap.bg-head{animation:flashY 1s ease-out 1}
+@keyframes flashR{0%{background:rgba(255,40,40,.32)}100%{background:transparent}}
+@keyframes flashY{0%{background:rgba(255,211,77,.34)}100%{background:transparent}}
+@keyframes impact{0%{transform:scale(1)}30%{transform:scale(1.14)}100%{transform:scale(1)}}
+@keyframes fadein{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:none}}
+.dres.crit{color:#ff5a5a}.dres.head{color:#ffd34d}.dres.motive{color:#fff}
+.doll.fx-crit g.hit .p{fill:#b80f0f;stroke:#ff9a9a;stroke-width:4;transform-box:fill-box;transform-origin:center;animation:impact .55s ease-out 1,glowR 1.6s ease-in-out .55s infinite}
+.doll.fx-head g.hit .p{fill:#c98a00;stroke:#ffe38a;stroke-width:4;transform-box:fill-box;transform-origin:center;animation:impact .55s ease-out 1,glowY 1.6s ease-in-out .55s infinite}
+.doll.fx-motive g.hit .p{fill:#46607a;stroke:#fff;stroke-width:4;animation:glowW 2s ease-in-out infinite}
+@keyframes glowR{0%,100%{filter:drop-shadow(0 0 4px #ff3b3b)}50%{filter:drop-shadow(0 0 18px #ff3b3b)}}
+@keyframes glowY{0%,100%{filter:drop-shadow(0 0 4px #ffc400)}50%{filter:drop-shadow(0 0 18px #ffc400)}}
+@keyframes glowW{0%,100%{filter:drop-shadow(0 0 3px #cfe6ff)}50%{filter:drop-shadow(0 0 10px #cfe6ff)}}
+.doll .fx circle{fill:none;stroke-width:4;vector-effect:non-scaling-stroke;transform-box:fill-box;transform-origin:center;animation:ring 1s ease-out 1 both}
+@keyframes ring{from{transform:scale(.4);opacity:.9}to{transform:scale(7);opacity:0}}
+@media (prefers-reduced-motion:reduce){.banner,.doll.fx-crit g.hit .p,.doll.fx-head g.hit .p,.doll.fx-motive g.hit .p,.doll .fx circle,.hitwrap.bg-crit,.hitwrap.bg-head,.dres.crit,.dres.head{animation:none!important}}
+
+.htbl{border-collapse:collapse;width:100%;max-width:420px}.htbl th{text-align:left;font-size:12px;color:var(--dim);padding:4px 8px}.htbl td{padding:5px 8px;border-top:1px solid var(--line)}.htbl tbody tr{cursor:pointer}.htbl tr.cur{background:color-mix(in srgb,var(--danger) 25%,transparent);font-weight:700}
+
+.dgrid{display:flex;flex-wrap:wrap;gap:16px 36px;margin-top:12px}.dgrid .hint{max-width:290px}
+.dh{font-weight:700;color:var(--dim);font-size:12px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.ck{display:flex;align-items:center;gap:8px;padding:5px 0;cursor:pointer}.ck input{width:20px;height:20px;flex:none;accent-color:var(--acc)}
+.tmrow{display:flex;gap:14px;align-items:center}.tmrow input[type=number]{width:90px}
+.seg{display:flex;flex-wrap:wrap;gap:6px;max-width:300px}.seg button{text-align:center;padding:6px 11px;border:2px solid var(--line);font-weight:500}.seg button.on{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 22%,transparent);font-weight:700}
+.dcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin:12px 0}
+.dcard{border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.dcard .dh{margin:0;text-transform:none;font-size:14px;letter-spacing:0}
+.dtn{font-size:44px;font-weight:800;line-height:1;color:var(--acc)}
+
+.tbl.assets{min-width:820px}.tbl.inv{min-width:640px}.tbl td.cs{width:140px}.tbl td.qs{width:170px}.tbl td.lv{width:150px;text-align:right;white-space:nowrap;color:var(--acc);font-weight:600}.tbl .qs input{width:64px;flex:none;text-align:center}.tbl .qs button{padding:6px 12px;font-weight:700}.tbl td.lk{width:170px}.lkw{display:flex;gap:6px;align-items:center}.lnk{white-space:nowrap;text-decoration:none;border:1px solid var(--line);background:var(--btn);color:var(--ink);padding:6px 10px;border-radius:4px}.lnk:hover{border-color:var(--acc)}
+</style>
+</head>
+<body>
+<header><h1>Merc Company Tracker</h1><nav id="tabs" class="row"></nav><span style="flex:1"></span><button id="exp">Export data</button><button id="impb">Import data</button><input type="file" id="imp" accept=".json,application/json" hidden><span id="hm" class="hint" role="status"></span></header>
+<main id="app"></main>
+<details id="bkd"><summary>Backup and restore</summary>
+<p>Copy this text somewhere safe to back up your data. To restore, paste saved text here and press Load.</p>
+<textarea id="bk" rows="4" aria-label="Backup data"></textarea>
+<div class="row" style="margin-top:6px"><button id="bkc">Copy data</button><button id="bkl">Load pasted data</button><span id="bkm"></span></div>
+</details>
+<script>
+const $=s=>document.querySelector(s);
+let S={pilots:[],kills:[],sel:null,payee:null,tab:'pilots'};
+try{const r=JSON.parse(localStorage.getItem('mercTracker')||'null');if(r&&Array.isArray(r.pilots))S=Object.assign(S,r)}catch(e){}
+const save=()=>{try{localStorage.setItem('mercTracker',JSON.stringify(S))}catch(e){}};
+const uid=()=>Math.random().toString(36).slice(2,9);
+const fmt=n=>(Number(n)||0).toLocaleString()+' C-bills';
+function h(tag,props,...kids){
+  const e=document.createElement(tag);
+  for(const k in props||{}){const v=props[k];
+    if(k==='on')for(const ev in v)e.addEventListener(ev,v[ev]);
+    else if(k==='class')e.className=v;
+    else if(k in e)e[k]=v;else e.setAttribute(k,v)}
+  kids.flat().forEach(c=>c!=null&&e.append(c));return e;
+}
+const newPilot=()=>({id:uid(),name:'New pilot',gunnery:4,piloting:5,mech:{name:'',url:''},wallet:0,log:[],quirks:[],injuries:Array.from({length:5},()=>({on:false,note:''}))});
+S.pilots.forEach(p=>{while(p.injuries.length<5)p.injuries.push({on:false,note:''})});
+const RAMP=['','light-dark(#a87400,#e0b030)','light-dark(#c25a00,#f08a2a)','light-dark(#cc3a0a,#f26a2e)','light-dark(#cc1a1a,#f04040)','light-dark(#e00000,#ff2a2a)'];
+const woundCount=p=>(p.injuries||[]).filter(j=>j.on).length;
+const pipText=p=>{const n=woundCount(p);return n?'\u25cf'.repeat(n)+'\u25cb'.repeat(5-n):''};
+const nameColor=p=>{const n=(p.injuries||[]).filter(j=>j.on).length;
+  if(p.kia)return 'light-dark(#7a0a0e, #b3202a)';
+  return RAMP[n]||''};
+const cur=()=>S.pilots.find(p=>p.id===S.sel)||S.pilots[0]||null;
+function safeUrl(u){u=(u||'').trim();if(!u)return null;if(!/^https?:\/\//i.test(u))u='https://'+u;
+  try{const x=new URL(u);return /^https?:$/.test(x.protocol)?x.href:null}catch(e){return null}}
+function pay(id,amt,note,kills){
+  const p=S.pilots.find(x=>x.id===id);if(!p)return;
+  p.wallet=(Number(p.wallet)||0)+amt;if(kills&&kills.length){p.kills=(p.kills||0)+kills.length;p.career=(p.career||0)+kills.length;p.killCash=(p.killCash||0)+amt;p.killLog=p.killLog||[];kills.forEach(k=>p.killLog.unshift({name:k.name,value:k.value,mission:p.missions||0,mname:S.mission||'',op:S.operation||''}));p.killLog=p.killLog.slice(0,100)}
+  p.log.unshift({t:new Date().toLocaleString(),amt,note,kills:(kills||[]).map(k=>({id:k.id,name:k.name,value:k.value}))});p.log=p.log.slice(0,30);
+  save();render();
+}
+function undo(id){
+  const p=S.pilots.find(x=>x.id===id);if(!p||!p.log.length)return;
+  const l=p.log.shift();p.wallet=(Number(p.wallet)||0)-(Number(l.amt)||0);
+  if(l.kills&&l.kills.length){const n=l.kills.length;
+    p.kills=Math.max(0,(p.kills||0)-n);p.career=Math.max(0,(p.career||0)-n);p.killCash=Math.max(0,(p.killCash||0)-(Number(l.amt)||0));
+    p.killLog=(p.killLog||[]).slice(n);
+    l.kills.forEach(k=>{const kk=S.kills.find(x=>x.id===k.id);if(kk)kk.paid=''})}
+  save();render();msg('Undid: '+l.note);
+}
+function bind(obj,key,type,ph,after){
+  const i=h('input',{type:type||'text',value:obj[key]==null?'':obj[key],placeholder:ph||''});
+  i.addEventListener('input',()=>{obj[key]=type==='number'?(i.value===''?'':+i.value):i.value;save()});
+  if(after)i.addEventListener('change',after);
+  return i;
+}
+const field=(label,input,cls)=>h('label',{class:'f '+(cls||'')},h('span',{textContent:label}),input);
+
+function render(){
+  const t=$('#tabs');t.textContent='';
+  [['pilots','Pilots'],['kills','Kills & payouts'],['company',(co().name||'').trim()||'Company Information'],['dice','🎲'],['hit','⌖']].forEach(([k,l])=>t.append(
+    h('button',{class:'tab'+(S.tab===k?' on':''),textContent:l,on:{click:()=>{S.tab=k;save();render()}}})));
+  t.children[2].id='cotab';const dtb=t.children[3],htb=t.children[4];dtb.title='2D6 dice roller';dtb.setAttribute('aria-label','2D6 dice roller');htb.title='Hit location';htb.setAttribute('aria-label','Hit location');htb.textContent='';htb.append(crosshair());
+  const app=$('#app');app.textContent='';
+  app.append(S.tab==='pilots'?pilotsView():S.tab==='company'?companyView():S.tab==='dice'?diceView():S.tab==='hit'?hitView():killsView());
+}
+
+function pilotsView(){
+  const side=h('aside',{class:'side'});
+  const item=p=>h('button',{class:'pl'+(p===cur()?' on':''),on:{click:()=>{S.sel=p.id;save();render()}}},
+    h('b',{textContent:p.kia?'☠ '+(p.name||'Unnamed'):(p.name||'Unnamed'),'data-pid':p.id,style:nameColor(p)?'color:'+nameColor(p):''},h('span',{class:'pips',textContent:p.kia?'':pipText(p)})),
+    h('small',{textContent:p.kia?(p.kiaDate?'† '+p.kiaDate:'Date of death not set'):fmt(p.wallet)+(p.kills?' · '+p.kills+' kill'+(p.kills>1?'s':''):'')}));
+  S.pilots.filter(p=>!p.kia).forEach(p=>side.append(item(p)));
+  side.append(h('button',{textContent:'+ Add pilot',on:{click:()=>{const p=newPilot();S.pilots.push(p);S.sel=p.id;if(!S.payee)S.payee=p.id;save();render()}}}));
+  const dead=S.pilots.filter(p=>p.kia);
+  if(dead.length){side.append(h('h2',{textContent:'Deceased',style:'margin:12px 0 0'}));dead.forEach(p=>side.append(item(p)))}
+  const p=cur();
+  return h('div',{class:'layout'},side,p?sheet(p):h('p',{class:'empty',textContent:'Add a pilot to get started.'}));
+}
+
+let _npc=0;
+function noPic(lbl){
+  if(lbl)return h('span',{textContent:'No '+lbl});
+  const k=++_npc,t=document.createElement('template');
+  t.innerHTML=`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='xMidYMid slice' role='img' aria-label='File not found'>
+<defs>
+<filter id='ns${k}' x='0' y='0' width='100%' height='100%'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' seed='3'><animate attributeName='seed' values='1;5;2;8;3;7;4;6' dur='0.5s' repeatCount='indefinite' calcMode='discrete'/></feTurbulence><feColorMatrix type='matrix' values='0.4 0.4 0.4 0 0 0.4 0.4 0.4 0 0 0.4 0.4 0.4 0 0 0 0 0 0 0.24'/></filter>
+<pattern id='sl${k}' width='100' height='3' patternUnits='userSpaceOnUse'><rect width='100' height='1' fill='#000' opacity='0.4'/></pattern>
+<g id='hd${k}' fill='none' stroke-width='1.7' stroke-linecap='round' stroke-dasharray='4 1.6'><ellipse cx='50' cy='36' rx='15' ry='18'/><path d='M43 53v8M57 53v8M14 94C14 72 30 62 50 62s36 10 36 32'/></g>
+</defs>
+<rect width='100' height='100' fill='#070a09'/>
+<use href='#hd${k}' stroke='#ff2d2d' opacity='0.75'><animateTransform attributeName='transform' type='translate' values='-1.6 0;1.2 0.5;-0.8 -0.5;1.8 0;-1.6 0' dur='0.9s' repeatCount='indefinite' calcMode='discrete'/></use>
+<use href='#hd${k}' stroke='#2df0ff' opacity='0.75'><animateTransform attributeName='transform' type='translate' values='1.6 0;-1.2 -0.5;0.8 0.5;-1.8 0;1.6 0' dur='1.1s' repeatCount='indefinite' calcMode='discrete'/></use>
+<use href='#hd${k}' stroke='#d8fff0'/>
+<rect width='100' height='100' fill='#fff' filter='url(#ns${k})'/>
+<rect width='100' height='100' fill='url(#sl${k})'/>
+<rect x='0' y='-6' width='100' height='5' fill='#fff' opacity='0.14'><animate attributeName='y' values='-6;100' dur='2.4s' repeatCount='indefinite'/></rect>
+<rect y='76' width='100' height='17' fill='#000' opacity='0.72'/>
+<text x='50' y='88' text-anchor='middle' font-family='ui-monospace,Menlo,Consolas,monospace' font-weight='700' font-size='9' fill='#ff5a5a' textLength='88' lengthAdjust='spacingAndGlyphs'>FILE NOT FOUND<animate attributeName='opacity' values='1;1;0.3;1;1;0.6;1' dur='1.8s' repeatCount='indefinite'/></text>
+</svg>`;
+  return t.content.firstElementChild;
+}
+function picBox(p,lbl){
+  const inp=h('input',{type:'file',accept:'image/*',hidden:true});
+  const view=h('div',{class:'pic'}),up=h('button',{}),rm=h('button',{class:'danger',textContent:'Remove'});
+  const sync=()=>{view.textContent='';view.append(p.pic?h('img',{src:p.pic,alt:lbl?('Company '+lbl):(p.name||'Pilot')+' portrait'}):noPic(lbl));up.textContent=p.pic?'Change':'Add '+(lbl||'picture');rm.hidden=!p.pic};
+  inp.addEventListener('change',()=>{
+    const f=inp.files[0];inp.value='';if(!f||!f.type.startsWith('image/'))return;
+    const fr=new FileReader();
+    fr.onload=()=>{const im=new Image();im.onload=()=>{
+      const k=Math.min(1,320/Math.max(im.naturalWidth,im.naturalHeight)),w=Math.round(im.naturalWidth*k),ht=Math.round(im.naturalHeight*k);
+      const c=document.createElement('canvas');c.width=w;c.height=ht;c.getContext('2d').drawImage(im,0,0,w,ht);
+      p.pic=c.toDataURL('image/webp',0.85);save();sync()};im.src=fr.result};
+    fr.readAsDataURL(f)});
+  up.addEventListener('click',()=>inp.click());
+  rm.addEventListener('click',()=>{p.pic='';save();sync()});
+  sync();
+  return h('div',{class:'pw'},view,h('div',{class:'row',style:'gap:6px'},up,rm),inp);
+}
+function missionBox(p){
+  const v=h('b',{class:'mnum',textContent:String(p.missions||0)});
+  const set=n=>{p.missions=Math.max(0,n);save();v.textContent=String(p.missions)};
+  return h('div',{class:'f',style:'flex:0 0 150px;min-width:150px'},h('span',{textContent:'Missions'}),
+    h('div',{style:'display:flex;gap:6px;align-items:center'},
+      h('button',{textContent:'−','aria-label':'Fewer missions',on:{click:()=>set((p.missions||0)-1)}}),v,
+      h('button',{textContent:'+','aria-label':'More missions',on:{click:()=>set((p.missions||0)+1)}})));
+}
+function sheet(p){
+  const wrap=h('div',{class:'sheetw'});
+  // Pilot
+  wrap.append(h('div',{class:'sec'},h('h2',{textContent:'Pilot'}),h('div',{class:'row'},picBox(p),
+    field('Name',bind(p,'name','text','Callsign or name',render),'wide'),
+    field('Gunnery',bind(p,'gunnery','number'),'n'),
+    field('Piloting',bind(p,'piloting','number'),'n'),field('Unit / faction',bind(p,'unit','text','Unit or faction'),'wide'),field('Current deployment',bind(p,'deployment','text','Contract, world or front'),'wide'),missionBox(p),
+    h('button',{class:'danger',textContent:'Remove pilot',on:{click:()=>{
+      if(!confirm('Remove '+(p.name||'this pilot')+' and their sheet?'))return;
+      S.pilots=S.pilots.filter(x=>x!==p);S.sel=null;if(S.payee===p.id)S.payee=null;save();render()}}}))));
+  // BattleMech
+  const ln=h('span');
+  const setLink=()=>{ln.textContent='';const u=safeUrl(p.mech.url);
+    if(u)ln.append(h('a',{href:u,target:'_blank',rel:'noopener noreferrer',textContent:'Open '+(p.mech.name||'mech sheet')+' ↗'}))};
+  setLink();
+  const urlIn=bind(p.mech,'url','text','https://…');urlIn.addEventListener('input',setLink);
+  const mechIn=bind(p.mech,'name','text','Model and variant, e.g. Wolverine WVR-6R');mechIn.addEventListener('input',setLink);
+  wrap.append(h('div',{class:'sec'},h('h2',{textContent:'BattleMech'}),
+    h('div',{class:'row'},field('Mech',mechIn),field('Link (sheet or reference)',urlIn)),h('p',{class:'hint'},ln)));
+  // Wallet
+  const amt=h('input',{type:'number',min:0,placeholder:'Amount'});
+  const go=sign=>()=>{const a=Math.abs(+amt.value);if(a)pay(p.id,sign*a,sign>0?'Manual add':'Manual spend')};
+  const log=h('ul',{class:'log'});
+  p.log.slice(0,5).forEach(l=>log.append(h('li',{textContent:l.t+'  ·  '+(l.amt>0?'+':'')+Number(l.amt).toLocaleString()+'  ·  '+l.note})));
+  wrap.append(h('div',{class:'sec'},h('h2',{textContent:'Wallet'}),
+    h('div',{class:'row'},h('b',{class:'bal',textContent:fmt(p.wallet)}),h('span',{style:'flex:1'}),amt,
+      h('button',{textContent:'Add',on:{click:go(1)}}),h('button',{textContent:'Subtract',on:{click:go(-1)}}),h('button',{textContent:'Undo last',title:'Reverse the most recent entry in this log',disabled:!p.log.length,on:{click:()=>undo(p.id)}})),log));
+  // Kill tracker
+  const career=Math.max(p.career||0,p.kills||0);
+  const stat=(l,v)=>h('div',{class:'stat'},h('b',{textContent:v}),h('span',{textContent:l}));
+  const klog=h('ul',{class:'log'});
+  (p.killLog||[]).slice(0,5).forEach(k=>klog.append(h('li',{textContent:k.name+'  ·  '+fmt(k.value)})));
+  wrap.append(h('div',{class:'sec'},h('h2',{textContent:'Kill tracker'}),
+    h('div',{class:'row'},stat('Total kills',String(career)),
+      h('span',{style:'flex:1'}),
+      h('span')),
+    klog.children.length?klog:h('p',{class:'hint',textContent:'No kills paid yet. Pay a kill from the Kills & payouts tab.'})));
+  // Quirks
+  const qs=h('div');
+  p.quirks.forEach((q,i)=>qs.append(h('div',{class:'q'},
+    h('div',{class:'top'},bind(q,'name','text','Quirk name'),
+      h('button',{class:'danger',textContent:'Remove',on:{click:()=>{p.quirks.splice(i,1);save();render()}}})),
+    h('textarea',{rows:2,value:q.desc||'',placeholder:'What does this quirk do?',on:{input:e=>{q.desc=e.target.value;save()}}}))));
+  wrap.append(h('div',{class:'sec qsec'},h('h2',{textContent:'Pilot quirks'}),qs,
+    h('button',{textContent:'+ Add quirk',on:{click:()=>{p.quirks.push({name:'',desc:''});save();render()}}})));
+  // Injuries
+  const cnt=h('span',{class:'hint'});
+  const upd=()=>{cnt.textContent=p.injuries.filter(j=>j.on).length+' / 5 injuries';
+    const col=nameColor(p),ni=wrap.querySelector('input[placeholder="Callsign or name"]'),sb=document.querySelector('[data-pid="'+p.id+'"]');
+    if(ni)ni.style.color=col;cnt.style.color=col;if(sb){sb.style.color=col;const pp=sb.querySelector('.pips');if(pp)pp.textContent=pipText(p)}};
+  const inj=h('div',{class:'ticks'});
+  p.injuries.forEach((j,i)=>{
+    const cb=h('input',{type:'checkbox',checked:!!j.on,'aria-label':'Injury '+(i+1),title:'Injury '+(i+1),on:{change:e=>{j.on=e.target.checked;save();upd()}}});
+    inj.append(h('label',{class:'tk'},cb,h('span',{textContent:['+3','+5','+7','+10','+11'][i]})));
+  });
+  upd();
+  const kcb=h('input',{type:'checkbox',checked:!!p.kia,'aria-label':'Killed in action',title:'Killed in action',on:{change:e=>{p.kia=e.target.checked;save();render()}}});
+  inj.append(h('label',{class:'tk kia'},kcb,h('span',{textContent:'KIA'})));
+  let kd=null,kn=null;
+  if(p.kia){const di=h('input',{type:'text',inputMode:'numeric',maxLength:12,value:p.kiaDate||'',placeholder:'e.g. 3052-06-14','aria-label':'Date of death'});
+    di.addEventListener('input',()=>{di.value=di.value.replace(/[^0-9\/.\-]/g,'');p.kiaDate=di.value;save()});
+    di.addEventListener('change',render);
+    kd=field('Date of death (numbers only)',di);kd.style.maxWidth='260px';
+    kn=field('Where and how they died',h('textarea',{rows:3,value:p.kiaNote||'',placeholder:'Battle, world, circumstances, who was with them…',on:{input:e=>{p.kiaNote=e.target.value;save()}}}))}
+  wrap.append(h('div',{class:'sec injsec'},h('h2',{textContent:'Injuries (modifier per hit)'}),
+    (kd||kn)?h('div',{class:'row',style:'align-items:flex-start'},h('div',{},inj,cnt),
+      h('div',{style:'flex:1;min-width:260px;display:flex;flex-direction:column;gap:10px'},kd,kn)):[inj,cnt]));
+  wrap.append(h('div',{class:'sec'},h('h2',{textContent:'Biography'}),h('textarea',{rows:6,value:p.bio||'',placeholder:'Background, personality, history, connections…',on:{input:e=>{p.bio=e.target.value;save()}}})));
+  wrap.append(h('div',{class:'sec'},h('h2',{textContent:'Past engagements & awards'}),h('textarea',{rows:6,value:p.past||'',placeholder:'Previous contracts, battles, commendations, medals…',on:{input:e=>{p.past=e.target.value;save()}}})));
+  if(p.kia){wrap.classList.add('dead');wrap.append(h('div',{class:'stamp',textContent:'KIA','aria-hidden':'true'}))}
+  wrap.firstChild.after(wrap.querySelector('.injsec'));
+  wrap.children[2].after(wrap.querySelector('.qsec'));
+  return wrap;
+}
+
+function killsView(){
+  if(!S.pilots.find(p=>p.id===S.payee))S.payee=S.pilots[0]?S.pilots[0].id:null;
+  const box=h('div');
+  const sel=h('select',{'aria-label':'Pilot to pay',on:{change:e=>{S.payee=e.target.value;save();render()}}});
+  S.pilots.forEach(p=>sel.append(h('option',{value:p.id,textContent:(p.name||'Unnamed')+' — '+fmt(p.wallet)})));
+  if(S.payee)sel.value=S.payee;
+  const total=h('b',{class:'bal'});
+  const pp=S.pilots.find(p=>p.id===S.payee);
+  const undoB=h('button',{textContent:'Undo last payout',title:'Reverse the selected pilot’s most recent wallet entry',disabled:!(pp&&pp.log.length),on:{click:()=>undo(S.payee)}});
+  const payAll=h('button',{textContent:'Pay all checked',on:{click:()=>{
+    const ks=S.kills.filter(k=>k.done);const all=ks.flatMap(k=>Array.from({length:k.qty||1},()=>({id:k.id,name:k.name,value:+k.value||0})));const sum=all.reduce((a,k)=>a+k.value,0);
+    ks.forEach(k=>{k.done=false;k.qty=1;k.paid=(S.pilots.find(p=>p.id===S.payee)||{}).name});
+    pay(S.payee,sum,all.length+' kill'+(all.length>1?'s':''),all)}}});
+  const upd=()=>{const sum=S.kills.filter(k=>k.done).reduce((a,k)=>a+(+k.value||0)*(k.qty||1),0);
+    total.textContent=fmt(sum);payAll.disabled=!S.payee||!sum};
+  box.append(h('div',{class:'sec'},h('h2',{textContent:'Pay to'}),
+    S.pilots.length?h('div',{class:'row'},sel,h('span',{style:'flex:1'}),h('span',{class:'hint',textContent:'Checked kills total'}),total,payAll,undoB)
+      :h('p',{class:'empty',textContent:'Add a pilot first on the Pilots tab.'})));
+  const nm=h('input',{placeholder:'Kill, e.g. Locust LCT-1V',style:'flex:2;min-width:160px'});
+  const vl=h('input',{type:'number',min:0,placeholder:'Value',style:'flex:1;min-width:90px'});
+  const add=()=>{if(!nm.value.trim())return;S.kills.push({id:uid(),name:nm.value.trim(),value:+vl.value||0,done:false});save();render()};
+  const list=h('div');
+  S.kills.forEach((k,i)=>{
+    const r=h('div',{class:'kr'},
+      h('input',{type:'checkbox',checked:!!k.done,title:'Kill made',on:{change:e=>{k.done=e.target.checked;save();upd()}}}),
+      bind(k,'name','text','Kill name'),
+      (()=>{const v=bind(k,'value','number','Value');v.className='v';v.addEventListener('input',upd);return v})(),
+      (()=>{const n=h('b',{textContent:'×'+(k.qty||1)});const set=x=>{k.qty=Math.max(1,Math.min(100,x));save();n.textContent='×'+k.qty;upd()};
+        return h('div',{class:'qt',title:'How many of this kill to pay'},h('button',{textContent:'−','aria-label':'Fewer kills',on:{click:()=>set((k.qty||1)-1)}}),n,h('button',{textContent:'+','aria-label':'More kills',on:{click:()=>set((k.qty||1)+1)}}))})(),
+      h('button',{textContent:'Pay',disabled:!S.payee,title:'Add this value to the selected pilot’s wallet',on:{click:()=>{
+        k.paid=(S.pilots.find(p=>p.id===S.payee)||{}).name;const q=k.qty||1;k.qty=1;pay(S.payee,(+k.value||0)*q,'Kill: '+k.name+(q>1?' ×'+q:''),Array.from({length:q},()=>({id:k.id,name:k.name,value:+k.value||0})))}}}),
+      h('button',{class:'danger',textContent:'✕',title:'Delete kill',on:{click:()=>{S.kills.splice(i,1);save();render()}}}),
+      k.paid?h('small',{textContent:'Last paid to '+k.paid}):null);
+    list.append(r);
+  });
+  box.append(h('div',{class:'sec'},h('h2',{textContent:'Kills'}),
+    h('div',{class:'row'},nm,vl,h('button',{textContent:'+ Add kill',on:{click:add}})),
+    S.kills.length?list:h('p',{class:'empty',textContent:'No kills yet. Add one above, tick it when it happens, then pay it out.'})));
+  upd();return box;
+}
+
+const ASSET_TYPES=['Mech','Aerospace','Vehicle','Infantry'];
+function co(){if(!S.company)S.company={};const c=S.company;if(!Array.isArray(c.log))c.log=[];if(!Array.isArray(c.assets))c.assets=[];if(c.wallet==null)c.wallet=0;return c}
+function companyView(){
+  const c=co(),box=h('div');
+  const nameIn=bind(c,'name','text','Company name');
+  nameIn.addEventListener('input',()=>{const b=$('#cotab');if(b)b.textContent=(c.name||'').trim()||'Company Information'});
+  const mem=field('Members',bind(c,'members','number','0'),'n');mem.style.cssText='flex:0 0 110px;min-width:110px';
+  const shim={get pic(){return c.emblem||''},set pic(v){c.emblem=v},name:'Company'};
+  const em=picBox(shim,'emblem');em.classList.add('emb');
+  const ta=(key,ph,r)=>h('textarea',{rows:r||3,value:c[key]||'',placeholder:ph,on:{input:e=>{c[key]=e.target.value;save()}}});
+  box.append(h('div',{class:'sec'},h('h2',{textContent:'Company bio'}),
+    h('div',{class:'row',style:'align-items:stretch'},em,h('div',{style:'flex:1;min-width:260px;display:flex;flex-direction:column;gap:10px'},
+      h('div',{class:'row'},field('Company name (also renames this tab)',nameIn),mem),
+      field('Current contract',bind(c,'contract','text','Employer, target or front')),
+      (()=>{const fo=field('Founding',ta('founding','When, where and how the company was founded…')),t=fo.querySelector('textarea');t.style.cssText='flex:1;min-height:70px';return fo})())),
+    h('p',{class:'hint',textContent:'Pilots on the roster: '+S.pilots.length}),
+    field('Transport assets',ta('transport','DropShips, JumpShips and other transport…')),
+    field('Company biography',ta('bio','History, philosophy, reputation, notable figures…',6))));
+  // Historical contracts
+  const hist=c.history=Array.isArray(c.history)?c.history:[];
+  const hb=h('tbody');
+  hist.forEach((x,i)=>hb.append(h('tr',{},h('td',{},bind(x,'name','text','Contract or deployment')),h('td',{},bind(x,'employer','text','Employer')),
+    h('td',{class:'dt'},bind(x,'dates','text','e.g. 3025 to 3027')),h('td',{},bind(x,'notes','text','Outcome and notes')),
+    h('td',{class:'x'},h('button',{class:'danger',textContent:'✕',title:'Remove entry','aria-label':'Remove entry',on:{click:()=>{hist.splice(i,1);save();render()}}})))));
+  box.append(h('div',{class:'sec'},h('h2',{textContent:'Historical deployments & contracts'}),
+    hist.length?h('div',{class:'tblw'},h('table',{class:'tbl hist'},
+      h('thead',{},h('tr',{},h('th',{textContent:'Contract / deployment'}),h('th',{textContent:'Employer'}),h('th',{textContent:'Dates'}),h('th',{textContent:'Outcome / notes'}),h('th'))),hb))
+      :h('p',{class:'empty',textContent:'No past contracts recorded yet.'}),
+    h('button',{textContent:'+ Add past contract',on:{click:()=>{hist.push({name:'',employer:'',dates:'',notes:''});save();render()}}})));
+  // Company wallet
+  const amt=h('input',{type:'number',min:0,placeholder:'Amount'});
+  const note=h('input',{placeholder:'Note (optional)',style:'flex:1;min-width:140px'});
+  const move=sign=>()=>{const a=Math.abs(+amt.value);if(!a)return;
+    c.wallet=(Number(c.wallet)||0)+sign*a;
+    c.log.unshift({t:new Date().toLocaleString(),amt:sign*a,note:note.value.trim()||(sign>0?'Added':'Spent')});c.log=c.log.slice(0,30);save();render()};
+  const undoC=()=>{if(!c.log.length)return;const l=c.log.shift();c.wallet=(Number(c.wallet)||0)-(Number(l.amt)||0);save();render();msg('Undid: '+l.note)};
+  const log=h('ul',{class:'log'});
+  c.log.slice(0,5).forEach(l=>log.append(h('li',{textContent:l.t+'  ·  '+(l.amt>0?'+':'')+Number(l.amt).toLocaleString()+'  ·  '+l.note})));
+  box.append(h('div',{class:'sec'},h('h2',{textContent:'Company wallet'}),
+    h('div',{class:'stat',style:'margin-bottom:10px'},h('span',{textContent:'Total company value'}),h('b',{id:'coTotal',class:'bal',textContent:fmt((Number(c.wallet)||0)+invTotal(c))})),
+    h('div',{class:'row',style:'margin-bottom:12px;align-items:flex-start'},
+      h('div',{class:'stat',style:'min-width:170px'},h('span',{textContent:'Liquid C-bills'}),h('b',{textContent:fmt(c.wallet)})),
+      h('div',{class:'stat',style:'min-width:170px'},h('span',{textContent:'Inventory'}),h('b',{id:'invTot',textContent:fmt(invTotal(c))}))),
+    h('div',{class:'row'},amt,note,
+      h('button',{textContent:'Add',on:{click:move(1)}}),h('button',{textContent:'Subtract',on:{click:move(-1)}}),
+      h('button',{textContent:'Undo last',title:'Reverse the most recent entry in this log',disabled:!c.log.length,on:{click:undoC}})),log));
+  // Assets table
+  const sum=h('p',{class:'hint'});
+  const upd=()=>{sum.textContent=ASSET_TYPES.map(t=>t+': '+c.assets.filter(a=>(a.type||'Mech')===t).reduce((s,a)=>s+(+a.qty||0),0)).join('  ·  ');const w=$('#astTot');if(w)w.textContent=fmt(assetTotal(c))};
+  const tb=h('tbody');
+  c.assets.forEach((a,i)=>{
+    const ty=h('select',{'aria-label':'Asset type',on:{change:e=>{a.type=e.target.value;save();upd()}}});
+    ASSET_TYPES.forEach(t=>ty.append(h('option',{value:t,textContent:t})));ty.value=a.type||'Mech';
+    const q=bind(a,'qty','number','Qty');q.min=0;q.addEventListener('input',upd);
+    const cc=bind(a,'cost','number','Cost each');cc.min=0;cc.addEventListener('input',upd);
+    tb.append(h('tr',{},h('td',{class:'ty'},ty),h('td',{},bind(a,'name','text','Name or designation')),h('td',{class:'qty'},q),h('td',{class:'cs'},cc),h('td',{},bind(a,'notes','text','Notes')),
+      (()=>{const w=h('div',{class:'lkw'});let ed=false,busy=false;
+        const done=()=>{if(busy)return;busy=true;ed=false;draw();busy=false};
+        const draw=()=>{w.textContent='';const u=safeUrl(a.url);
+          if(u&&!ed){w.append(h('a',{class:'lnk',href:u,target:'_blank',rel:'noopener noreferrer',textContent:'Open ↗',title:u}),
+            h('button',{textContent:'✎',title:'Edit link','aria-label':'Edit link',on:{click:()=>{ed=true;draw();const i=w.querySelector('input');if(i)i.focus()}}}))}
+          else{const i=bind(a,'url','text','https://…');
+            i.addEventListener('keydown',e=>{if(e.key==='Enter')done()});
+            i.addEventListener('blur',()=>{if(safeUrl(a.url))done()});
+            w.append(i)}};
+        draw();return h('td',{class:'lk'},w)})(),
+      h('td',{class:'x'},h('button',{class:'danger',textContent:'✕',title:'Remove asset','aria-label':'Remove asset',on:{click:()=>{c.assets.splice(i,1);save();render()}}}))));
+  });
+  const tbl=h('div',{class:'tblw'},h('table',{class:'tbl assets'},
+    h('thead',{},h('tr',{},h('th',{textContent:'Type'}),h('th',{textContent:'Name / designation'}),h('th',{textContent:'Qty'}),h('th',{textContent:'Cost each (C-bills)'}),h('th',{textContent:'Notes'}),h('th',{textContent:'Link (sheet or reference)'}),h('th'))),tb));
+  box.append(h('div',{class:'sec'},h('h2',{textContent:'Company assets'}),
+    c.assets.length?tbl:h('p',{class:'empty',textContent:'No assets listed yet. Add a Mech, Aerospace, Vehicle or Infantry unit.'}),
+    sum,h('button',{textContent:'+ Add asset',on:{click:()=>{c.assets.push({type:'Mech',name:'',qty:1,notes:''});save();render()}}})));
+  box.append(inventorySection(c));upd();return box;
+}
+
+const assetTotal=c=>(c.assets||[]).reduce((s,a)=>s+(Number(a.qty)||0)*(Number(a.cost)||0),0);
+const invTotal=c=>(c.inventory||[]).reduce((s,i)=>s+(Number(i.qty)||0)*(Number(i.cost)||0),0);
+function inventorySection(c){
+  const items=c.inventory=Array.isArray(c.inventory)?c.inventory:[];
+  const tot=h('b',{class:'bal'});const upd=()=>{tot.textContent=fmt(invTotal(c));const w=$('#invTot');if(w)w.textContent=fmt(invTotal(c));const g=$('#coTotal');if(g)g.textContent=fmt((Number(c.wallet)||0)+invTotal(c))};
+  const tb=h('tbody');
+  items.forEach((it,i)=>{
+    const lv=h('td',{class:'lv'});const setLv=()=>{lv.textContent=fmt((Number(it.qty)||0)*(Number(it.cost)||0))};
+    const qi=bind(it,'qty','number','0');qi.min=0;qi.addEventListener('input',()=>{setLv();upd()});
+    const step=d=>()=>{it.qty=Math.max(0,(Number(it.qty)||0)+d);qi.value=it.qty;save();setLv();upd()};
+    const ci=bind(it,'cost','number','Cost each');ci.min=0;ci.addEventListener('input',()=>{setLv();upd()});
+    tb.append(h('tr',{},h('td',{},bind(it,'name','text','Item name')),h('td',{class:'cs'},ci),
+      h('td',{class:'qs'},h('div',{class:'lkw'},h('button',{textContent:'\u2212',title:'Subtract one','aria-label':'Subtract one',on:{click:step(-1)}}),qi,h('button',{textContent:'+',title:'Add one','aria-label':'Add one',on:{click:step(1)}}))),
+      lv,h('td',{class:'x'},h('button',{class:'danger',textContent:'\u2715',title:'Remove item','aria-label':'Remove item',on:{click:()=>{items.splice(i,1);save();render()}}}))));
+    setLv();
+  });
+  const sec=h('div',{class:'sec'},h('h2',{textContent:'Company inventory'}),
+    h('div',{class:'row'},tot,h('span',{class:'hint',textContent:'Total inventory value (quantity \u00d7 cost each)'})),
+    items.length?h('div',{class:'tblw',style:'margin-top:10px'},h('table',{class:'tbl inv'},
+      h('thead',{},h('tr',{},h('th',{textContent:'Item'}),h('th',{textContent:'Cost each (C-bills)'}),h('th',{textContent:'Quantity'}),h('th',{textContent:'Value',style:'text-align:right'}),h('th'))),tb))
+      :h('p',{class:'empty',textContent:'No items yet. Add one to start counting your stock.'}),
+    h('div',{style:'margin-top:10px'},h('button',{textContent:'+ Add item',on:{click:()=>{items.push({name:'',qty:1,cost:0});save();render()}}})));
+  upd();return sec;
+}
+
+const dieRoll=()=>{const a=new Uint32Array(1);do{crypto.getRandomValues(a)}while(a[0]>=4294967292);return a[0]%6+1};
+const DIE_PIPS={1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
+const dieFace=(el,n)=>{el.textContent='';for(let i=0;i<9;i++)el.append(h('i',{class:(DIE_PIPS[n]||[]).includes(i)?'on':''}))};
+const DICE={heat:0,last:null,pilot:null,range:'short',mv:null,tm:'',jj:false,woods:null,partial:false,inter:null,hist:[]};
+const RANGE={short:['Short',0],medium:['Medium',2],long:['Long',4],extreme:['Extreme',6]};
+const MV={stand:['Stand',0],walk:['Walk',1],run:['Run',2],jump:['Jump',3]};
+const SKILL={gunnery:'Gunnery',piloting:'Piloting'};
+const WAYS=[0,0,1,2,3,4,5,6,5,4,3,2,1];
+const chanceOf=t=>{let w=0;for(let s=Math.max(2,t);s<=12;s++)w+=WAYS[s];return Math.round(w/36*100)};
+const sgn=v=>(v<0?'−':'+')+Math.abs(v);
+const dmods=()=>{
+  const parts=[],add=(l,v)=>{if(v)parts.push([l,v])};
+  if(DICE.range&&RANGE[DICE.range])add(RANGE[DICE.range][0]+' range',RANGE[DICE.range][1]);
+  if(DICE.mv)add(MV[DICE.mv][0],MV[DICE.mv][1]);
+  add('Target movement'+(DICE.jj?' (incl. JJ)':''),(Number(DICE.tm)||0)+(DICE.jj?1:0));
+  if(DICE.woods)add(DICE.woods==='light'?'Light terrain':'Heavy terrain',DICE.woods==='light'?1:2);
+  if(DICE.partial)add('Partial cover',1);
+  if(DICE.inter)add('Intervening terrain',DICE.inter);
+  return {parts,total:parts.reduce((s,x)=>s+x[1],0)};
+};
+const livePilots=()=>S.pilots.filter(p=>!p.kia);
+const dicePilot=()=>{const l=livePilots();let p=l.find(x=>x.id===DICE.pilot);if(!p&&l.length){p=l[0];DICE.pilot=p.id}return p||null};
+const rollBase=r=>r.kind?r.pilot+' · '+SKILL[r.kind]+' '+r.sv+(r.mods?(r.mods>0?' + ':' − ')+Math.abs(r.mods):'')+' = target '+r.tn:'Plain 2D6';
+const rollVerdict=r=>{const s=r.a+r.b;let v=s===2?'Snake eyes':s===12?'Boxcars':'';
+  if(r.tn!=null){const ok=s>=r.tn;v+=(v?' · ':'')+(r.kind==='gunnery'?(ok?'HIT':'MISS'):(ok?'PASS':'FAIL'))}
+  return v};
+const PH={
+  dfa:{open:false,tp:5,tm:'',tj:false,prone:false,imm:false,other:'',tons:'',last:null},
+  charge:{open:false,tp:5,tm:'',tj:false,prone:false,imm:false,other:'',tons:'',ttons:'',hexes:'',mv:'walk',woods:null,partial:false,last:null}};
+const PH_TITLE={dfa:'Death From Above (DFA) attack',charge:'Charge attack'};
+function physPanel(kind,getPilot){
+  const D=PH[kind],isD=kind==='dfa';
+  let rolling=false;
+  const A=h('div',{class:'die'}),B=h('div',{class:'die'});
+  const L0=D.last;dieFace(A,L0?L0.a:0);dieFace(B,L0?L0.b:0);
+  const info=h('div',{class:'hint'}),form=h('div',{class:'hint',style:'margin-top:4px'});
+  const tnEl=h('div',{class:'dtn'}),chEl=h('div',{class:'hint'}),dmg=h('div',{class:'hint',style:'white-space:pre-line;margin-top:8px'});
+  const res=h('div',{class:'dres'}),sub=h('div',{class:'hint'}),verdict=h('div',{class:'dverdict'}),after=h('div',{class:'hint',style:'white-space:pre-line;margin-top:8px;max-width:440px'});
+  const btn=h('button',{class:'rollbtn',textContent:isD?'Roll DFA':'Roll charge'});
+  const num=(key,ph,label,min)=>{const p={type:'number',value:D[key],placeholder:ph,'aria-label':label,on:{input:e=>{D[key]=e.target.value;refresh();show()}}};if(min!=null)p.min=min;return h('input',p)};
+  const cb=(label,key)=>h('label',{class:'ck'},h('input',{type:'checkbox',checked:D[key],on:{change:e=>{D[key]=e.target.checked;refresh();show()}}}),h('span',{textContent:label}));
+  const seg=(opts,key)=>{const w=h('div',{class:'seg',role:'group'}),bs=[];
+    const on=()=>bs.forEach(([k,b])=>{const a=(D[key]||null)===k;b.classList.toggle('on',a);b.setAttribute('aria-pressed',String(a))});
+    opts.forEach(([k,l])=>{const b=h('button',{type:'button',textContent:l,on:{click:()=>{D[key]=k;on();refresh();show()}}});bs.push([k,b]);w.append(b)});
+    on();return w};
+  const calc=()=>{const p=getPilot(),pv=p?(Number(p.piloting)||0):0,tp=Number(D.tp)||0;
+    const parts=[['Piloting'+(p?'':' (no pilot)'),pv],['Comparative ('+pv+' − '+tp+')',pv-tp]];
+    if(isD)parts.push(['Attacker jumped',3]);else parts.push(['Attacker '+(D.mv==='run'?'ran':'walked'),D.mv==='run'?2:1]);
+    parts.push(['Target movement'+(D.tj?' (incl. jump)':''),(Number(D.tm)||0)+(D.tj?1:0)],['Target prone',D.prone?-2:0],['Target immobile',D.imm?-4:0]);
+    if(!isD)parts.push([D.woods==='heavy'?'Heavy woods':'Light woods',D.woods==='heavy'?2:D.woods==='light'?1:0],['Partial cover',D.partial?1:0]);
+    parts.push(['Other',Number(D.other)||0]);
+    return {p,pv,shown:parts.filter((x,i)=>i<3||x[1]!==0),T:parts.reduce((s,x)=>s+x[1],0)}};
+  const n0=k=>Math.floor(Number(D[k]))||0;
+  const grp=d=>{const n=Math.floor(d/5),r=d%5;return d+' damage ('+(n?n+' × 5':'')+(n&&r?' + ':'')+(r?r:'')+')'};
+  const toTarget=()=>isD?Math.floor((n0('tons')*3+9)/10):Math.floor((n0('tons')*n0('hexes')+9)/10);
+  const toSelf=()=>isD?Math.floor((n0('tons')+4)/5):Math.floor((n0('ttons')+9)/10);
+  const haveT=()=>isD?n0('tons')>0:(n0('tons')>0&&n0('hexes')>0),haveS=()=>isD?n0('tons')>0:n0('ttons')>0;
+  const tLoc=isD?'Punch Location Table':'Hit Location Table',sLoc=isD?'Kick Location Table, front':'Hit Location Table';
+  const refresh=()=>{const c=calc();
+    info.textContent=c.p?('Attacker: '+(c.p.name||'Unnamed')+' · Piloting '+c.pv+' (change the pilot in the roller above)'):'No living pilot selected above.';
+    form.textContent=c.shown.map(([l,v],i)=>i?l+' '+sgn(v):l+' '+v).join('  ·  ')+'  =  '+c.T;
+    tnEl.textContent=c.T;
+    chEl.textContent=c.T<=2?'Automatic hit':c.T>12?'Automatic miss · you may choose not to attack':'Roll '+c.T+' or higher · '+chanceOf(c.T)+'% chance';
+    dmg.textContent=(haveT()||haveS())?'If it hits: '+(haveT()?'target takes '+grp(toTarget())+' ('+tLoc+')':'target damage needs '+(isD?'your tonnage':'your tonnage and hexes moved'))+'. '+(haveS()?'You take '+grp(toSelf())+' ('+sLoc+').':'Your damage needs '+(isD?'your tonnage':'the target’s tonnage')+'.'):'Enter the tonnage'+(isD?'':' and hexes moved')+' to see the damage.';
+    btn.disabled=rolling||!c.p};
+  const show=()=>{const r=D.last;
+    if(!r){res.textContent='—';sub.textContent='Press '+btn.textContent;verdict.textContent='';after.textContent='';return}
+    const s=r.a+r.b,ok=r.tn<=2?true:(r.tn>12?false:s>=r.tn);
+    res.textContent=s;sub.textContent=(r.pilot||'')+' · rolled '+s+' vs target '+r.tn;
+    verdict.textContent=(ok?'HIT':'MISS')+(s===2?' · Snake eyes':s===12?' · Boxcars':'');verdict.style.color=ok?'var(--acc)':'var(--danger)';
+    const tt=haveT()?grp(toTarget()):(isD?'tonnage ÷ 10 × 3 damage, rounded up':'tonnage ÷ 10 × hexes moved, rounded up');
+    const ss=haveS()?grp(toSelf()):(isD?'tonnage ÷ 5 damage, rounded up':'target tonnage ÷ 10 damage, rounded up');
+    after.textContent=ok
+      ?(isD
+        ?'Target takes '+tt+' in 5-point groups on the Punch Location Table.\nYou take '+ss+' in 5-point groups on the Kick Location Table (front).\nThen you make a Piloting Skill Roll at +4. The target rolls at +2 unless being displaced already knocked it down.'
+        :'Target takes '+tt+' in 5-point groups, each rolled on the Hit Location Table.\nYou take '+ss+' in 5-point groups on the Hit Location Table.\nBoth ’Mechs then make a Piloting Skill Roll at +2 or fall. You advance into the target’s hex and the target is displaced one hex directly away.')
+      :(isD?'You automatically fall, taking damage as a 2-level fall (hit location: rear). The target moves to any legal adjacent hex.'
+        :'You move into the hex to the right or left of your forward arc (your choice, unless it is prohibited terrain).')};
+  btn.addEventListener('click',()=>{const c=calc();if(rolling||!c.p)return;rolling=true;btn.disabled=true;A.classList.add('rolling');B.classList.add('rolling');let n=0;
+    const iv=setInterval(()=>{dieFace(A,dieRoll());dieFace(B,dieRoll());if(++n<10)return;clearInterval(iv);
+      const a=dieRoll(),b=dieRoll();dieFace(A,a);dieFace(B,b);A.classList.remove('rolling');B.classList.remove('rolling');
+      D.last={a,b,tn:calc().T,pilot:c.p.name||'Unnamed'};rolling=false;refresh();show()},70)});
+  const hex='Modifier from hexes moved: 0–2 = 0, 3–4 = +1, 5–6 = +2, 7–9 = +3, 10–17 = +4, 18–24 = +5, 25+ = +6.';
+  const col=(title,...kids)=>h('div',{},h('div',{class:'dh',textContent:title}),...kids);
+  const cols=[col('Target Piloting skill',num('tp','5','Target piloting skill',0))];
+  if(!isD)cols.push(col('Attacker movement',seg([['walk','Walked (+1)'],['run','Ran (+2)']],'mv')));
+  cols.push(col('Target movement',h('div',{class:'tmrow'},num('tm','0','Target movement modifier'),cb('Target jumped (+1)','tj')),h('p',{class:'hint',textContent:hex})),
+    col('Target state',cb('Prone (−2)','prone'),cb('Immobile (−4)','imm')));
+  if(!isD)cols.push(col('Terrain',seg([[null,'Clear (+0)'],['light','Light woods (+1)'],['heavy','Heavy woods (+2)']],'woods'),cb('Partial cover (+1)','partial')));
+  cols.push(col('Other modifier',num('other','0','Other modifier')),col('Your tonnage (optional)',num('tons','tons','Attacker tonnage',0)));
+  if(!isD)cols.push(col('Hexes you moved (optional)',num('hexes','hexes','Hexes moved',0)),col('Target tonnage (optional)',num('ttons','tons','Target tonnage',0)));
+  const note=isD
+    ?'Terrain modifiers (woods, partial cover) are ignored for a DFA, and heat and sensor modifiers never apply. The +3 for jumping is always added. You cannot make weapon attacks the turn you DFA.'
+    :'Terrain modifiers apply to a charge; heat and sensor modifiers never do. You must not have jumped, and you cannot make weapon attacks the turn you charge. Charges are declared in the Movement Phase and resolved in the Physical Attack Phase. Hexes moved is the distance you travelled, not counting the target’s hex.';
+  const body=h('div',{class:'dfabody'},info,h('div',{class:'dgrid'},...cols),
+    h('div',{class:'dcard',style:'margin:14px 0'},h('div',{class:'dh',textContent:(isD?'DFA':'Charge')+' target number'}),tnEl,chEl,form,dmg),
+    h('div',{class:'dwrap'},A,B,h('div',{},res,sub,verdict,h('div',{style:'margin-top:10px'},btn))),after,
+    h('p',{class:'hint',textContent:note}));
+  const tg=h('button',{type:'button',class:'dfa-toggle'});
+  const paintTg=()=>{tg.textContent=(D.open?'▾ ':'▸ ')+PH_TITLE[kind];tg.setAttribute('aria-expanded',String(D.open));body.style.display=D.open?'':'none'};
+  tg.addEventListener('click',()=>{D.open=!D.open;paintTg()});
+  paintTg();refresh();show();
+  return {el:h('div',{},tg,body),refresh};
+}
+const heatMod=v=>v>=24?4:v>=17?3:v>=13?2:v>=8?1:0;
+const HEAT_BANDS=[[0,7,0,'#35c9b0'],[8,12,1,'#ffd93b'],[13,16,2,'#ff9f2e'],[17,23,3,'#ff5a2e'],[24,30,4,'#e02424']];
+function heatBox(onChange){
+  const X0=30,XS=368,W=420,xOf=v=>X0+(v/30)*XS,off=v=>(xOf(v)/400).toFixed(3);
+  const cs=HEAT_BANDS.map(b=>b[3]);
+  const stops=`<stop offset='0' stop-color='${cs[0]}'/>`
+    +HEAT_BANDS.slice(0,-1).map((b,i)=>{const o=off(b[1]+.5);return `<stop offset='${o}' stop-color='${cs[i]}'/><stop offset='${o}' stop-color='${cs[i+1]}'/>`}).join('')
+    +`<stop offset='1' stop-color='${cs[4]}'/>`;
+  let ticks='';for(let v=0;v<=30;v+=5)ticks+=`<line class='tk' x1='${xOf(v)}' x2='${xOf(v)}' y1='38' y2='44'/><text class='tl' x='${xOf(v)}' y='55' text-anchor='middle'>${v}</text>`;
+  let bands='';HEAT_BANDS.forEach(([a,b,m,c])=>{const xa=xOf(Math.max(0,a-.5)),xb=xOf(Math.min(30,b+.5));
+    bands+=`<rect x='${xa+1}' y='62' width='${xb-xa-2}' height='5' rx='2' fill='${c}'/><text class='bl' x='${(xa+xb)/2}' y='82' text-anchor='middle' fill='${c}'>+${m}</text>`});
+  const t=document.createElement('template');
+  t.innerHTML=`<svg class='thermo' viewBox='0 0 ${W} 90' role='slider' tabindex='0' aria-label='Heat level' aria-valuemin='0' aria-valuemax='30' aria-valuenow='0'>`
+    +`<defs><linearGradient id='thg' gradientUnits='userSpaceOnUse' x1='0' y1='0' x2='400' y2='0'>${stops}</linearGradient></defs>`
+    +`<rect class='tube' x='22' y='8' width='382' height='28' rx='14'/><circle class='tube' cx='22' cy='22' r='19'/>`
+    +`<circle cx='22' cy='22' r='14' fill='url(#thg)'/><rect x='24' y='14' width='${X0+XS-24}' height='16' rx='8' fill='url(#thg)'/>`
+    +`<rect class='tbg cover' x='${X0}' y='14' width='${XS}' height='16' style='transform-origin:${X0+XS}px 22px'/>`
+    +ticks+bands
+    +`<line class='lvl' x1='0' x2='0' y1='4' y2='40'/></svg>`;
+  const svg=t.content.firstElementChild,cover=svg.querySelector('.cover'),lvl=svg.querySelector('.lvl');
+  const hv=h('div',{class:'heatnum'}),hm=h('div',{class:'heatmod'});
+  const hint=h('p',{class:'hint',textContent:'Heat adds to the target number for weapon attacks only. It never applies to physical attacks (punch, kick, charge, DFA) or Piloting rolls. Tap or drag the scale, or use the buttons.'});
+  const num=h('input',{type:'number',min:0,max:30,'aria-label':'Heat level',on:{input:e=>{if(e.target.value!=='')set(Number(e.target.value),true)}}});
+  const set=(v,fromInput)=>{v=Math.max(0,Math.min(30,Math.round(Number(v)||0)));DICE.heat=v;
+    cover.style.transform='scaleX('+(1-v/30)+')';lvl.style.transform='translateX('+xOf(v)+'px)';
+    svg.setAttribute('aria-valuenow',String(v));
+    const m=heatMod(v),c=HEAT_BANDS[HEAT_BANDS.findIndex(b=>v>=b[0]&&v<=b[1])][3];
+    hv.textContent='Heat '+v;hv.style.color=c;hm.textContent=m?'+'+m+' to hit':'No to-hit penalty';hm.style.color=m?c:'';
+    if(!fromInput)num.value=v;
+    onChange()};
+  let dragging=false;
+  const fromX=cx=>{const r=svg.getBoundingClientRect();set((((cx-r.left)/r.width*W)-X0)/XS*30)};
+  svg.addEventListener('pointerdown',e=>{dragging=true;try{svg.setPointerCapture(e.pointerId)}catch(x){}fromX(e.clientX)});
+  svg.addEventListener('pointermove',e=>{if(dragging)fromX(e.clientX)});
+  svg.addEventListener('pointerup',()=>{dragging=false});svg.addEventListener('pointercancel',()=>{dragging=false});
+  svg.addEventListener('keydown',e=>{const k=e.key,d=(k==='ArrowUp'||k==='ArrowRight')?1:(k==='ArrowDown'||k==='ArrowLeft')?-1:k==='PageUp'?5:k==='PageDown'?-5:0;
+    if(d){e.preventDefault();set(DICE.heat+d)}else if(k==='Home'){e.preventDefault();set(0)}else if(k==='End'){e.preventDefault();set(30)}});
+  const btn=(l,t2,f)=>h('button',{type:'button',textContent:l,title:t2,'aria-label':t2,on:{click:f}});
+  const el=h('div',{class:'heatbox'},
+    h('div',{class:'heatrow'},hv,hm,h('div',{class:'heatctl'},btn('−','Less heat',()=>set(DICE.heat-1)),num,btn('+','More heat',()=>set(DICE.heat+1)),btn('Cool','Reset heat to 0',()=>set(0)))),
+    svg,hint);
+  set(DICE.heat||0);
+  return el;
+}
+function diceView(){
+  let rolling=false;
+  const A=h('div',{class:'die'}),B=h('div',{class:'die'});
+  const L=DICE.last;dieFace(A,L?L.a:0);dieFace(B,L?L.b:0);
+  const res=h('div',{class:'dres'}),sub=h('div',{class:'hint'}),verdict=h('div',{class:'dverdict'}),hl=h('ul',{class:'log'});
+  const show=()=>{const r=DICE.last;
+    if(!r){res.textContent='—';sub.textContent='Press a roll button';verdict.textContent='';return}
+    const s=r.a+r.b;res.textContent=s;sub.textContent=rollBase(r);verdict.textContent=rollVerdict(r);
+    verdict.style.color=r.tn==null?'':(s>=r.tn?'var(--acc)':'var(--danger)')};
+  const drawHist=()=>{hl.textContent='';DICE.hist.forEach(r=>{const v=rollVerdict(r);hl.append(h('li',{textContent:rollBase(r)+'  ·  rolled '+(r.a+r.b)+(v?'  ·  '+v:'')}))})};
+  // Pilot picker
+  const sel=h('select',{'aria-label':'Pilot rolling',on:{change:e=>{DICE.pilot=e.target.value;refresh()}}});
+  livePilots().forEach(p=>sel.append(h('option',{value:p.id,textContent:(p.name||'Unnamed')+'  (G '+p.gunnery+' / P '+p.piloting+')'})));
+  const cp=dicePilot();if(cp)sel.value=cp.id;
+  // Controls
+  const cb=(label,get,set)=>h('label',{class:'ck'},h('input',{type:'checkbox',checked:get(),on:{change:e=>{set(e.target.checked);refresh()}}}),h('span',{textContent:label}));
+  const excl=(opts,get,set)=>{const boxes={},w=h('div');
+    opts.forEach(([k,l])=>{const c=h('input',{type:'checkbox',checked:get()===k,on:{change:e=>{set(e.target.checked?k:null);Object.keys(boxes).forEach(kk=>{boxes[kk].checked=String(get())===kk});refresh()}}});
+      boxes[k]=c;w.append(h('label',{class:'ck'},c,h('span',{textContent:l})))});
+    return w};
+  const seg=(opts,get,set)=>{const w=h('div',{class:'seg',role:'group'}),bs=[];
+    const paint=()=>bs.forEach(([k,b])=>{const on=get()===k;b.classList.toggle('on',on);b.setAttribute('aria-pressed',String(on))});
+    opts.forEach(([k,l])=>{const b=h('button',{type:'button',textContent:l,on:{click:()=>{set(k);paint();refresh()}}});bs.push([k,b]);w.append(b)});
+    paint();return w};
+  const tmIn=h('input',{type:'number',value:DICE.tm,placeholder:'0','aria-label':'Target movement modifier',on:{input:e=>{DICE.tm=e.target.value;refresh()}}});
+  const grid=h('div',{class:'dgrid'},
+    h('div',{},h('div',{class:'dh',textContent:'Range'}),seg(Object.keys(RANGE).map(k=>[k,RANGE[k][0]+' (+'+RANGE[k][1]+')']),()=>DICE.range||'short',v=>{DICE.range=v})),
+    h('div',{},h('div',{class:'dh',textContent:'Attacker movement'}),seg(Object.keys(MV).map(k=>[k,MV[k][0]+' (+'+MV[k][1]+')']),()=>DICE.mv||'stand',v=>{DICE.mv=v})),
+    h('div',{},h('div',{class:'dh',textContent:'Target Movement'}),h('div',{class:'tmrow'},tmIn,cb('JJ (+1)',()=>DICE.jj,v=>{DICE.jj=v})),
+      h('p',{class:'hint',textContent:'Enter the target’s movement modifier. Hexes moved: 0–2 = 0, 3–4 = +1, 5–6 = +2, 7–9 = +3, 10–17 = +4, 18–24 = +5, 25+ = +6.'})),
+    h('div',{},h('div',{class:'dh',textContent:'Terrain'}),seg([[null,'Clear (+0)'],['light','Light (+1)'],['heavy','Heavy (+2)']],()=>DICE.woods||null,v=>{DICE.woods=v}),cb('Partial (+1)',()=>DICE.partial,v=>{DICE.partial=v})),
+    h('div',{},h('div',{class:'dh',textContent:'Intervening Terrain'}),seg([[0,'Clear (+0)'],[1,'Light (+1)'],[2,'Two Light/Heavy (+2)']],()=>DICE.inter||0,v=>{DICE.inter=v})));
+  // Target cards with roll buttons
+  const mkCard=kind=>{const ttl=h('div',{class:'dh'}),tn=h('div',{class:'dtn'}),ch=h('div',{class:'hint'}),b=h('button',{class:'rollbtn',textContent:'Roll '+SKILL[kind]});
+    b.addEventListener('click',()=>doRoll(kind));
+    return {el:h('div',{class:'dcard'},ttl,tn,ch,b),ttl,tn,ch,b}};
+  const gc=mkCard('gunnery'),pc=mkCard('piloting');
+  const plain=h('button',{textContent:'Plain 2D6'});plain.addEventListener('click',()=>doRoll(null));
+  let dfaRefresh=()=>{};
+  const modLine=h('div',{class:'hint'});
+  const refresh=()=>{const m=dmods(),p=dicePilot();
+    modLine.textContent=(m.parts.length?m.parts.map(([l,v])=>l+' '+sgn(v)).join('  ·  ')+'  =  ':'No modifiers selected  =  ')+sgn(m.total)+' total'+(heatMod(DICE.heat)?'  ·  Heat '+sgn(heatMod(DICE.heat))+' (Gunnery only)':'');
+    [[gc,'gunnery'],[pc,'piloting']].forEach(([c,k])=>{
+      if(!p){c.ttl.textContent=SKILL[k];c.tn.textContent='—';c.ch.textContent='No living pilot to roll';c.b.disabled=true;return}
+      const hm=k==='gunnery'?heatMod(DICE.heat):0,sv=Number(p[k])||0,t=sv+m.total+hm;
+      c.ttl.textContent=SKILL[k]+' '+sv+' '+sgn(m.total)+(hm?' '+sgn(hm)+' heat':'')+' =';c.tn.textContent=t;
+      c.ch.textContent=t>12?'Target '+t+' · impossible (needs 13+)':'Roll '+t+' or higher · '+chanceOf(t)+'% chance';
+      c.b.disabled=rolling});
+    dfaRefresh();
+  };
+  const doRoll=kind=>{if(rolling)return;const p=dicePilot();if(kind&&!p)return;
+    rolling=true;[gc.b,pc.b,plain].forEach(x=>{x.disabled=true});A.classList.add('rolling');B.classList.add('rolling');let n=0;
+    const iv=setInterval(()=>{dieFace(A,dieRoll());dieFace(B,dieRoll());
+      if(++n<10)return;clearInterval(iv);
+      const a=dieRoll(),b=dieRoll(),m=dmods().total+(kind==='gunnery'?heatMod(DICE.heat):0);
+      dieFace(A,a);dieFace(B,b);A.classList.remove('rolling');B.classList.remove('rolling');
+      const sv=kind?(Number(p[kind])||0):null;
+      DICE.last={a,b,kind,pilot:kind?(p.name||'Unnamed'):null,sv,mods:kind?m:0,tn:kind?sv+m:null};
+      DICE.hist.unshift(DICE.last);DICE.hist=DICE.hist.slice(0,10);
+      rolling=false;plain.disabled=false;refresh();show();drawHist()},70)};
+  refresh();show();drawHist();
+  const heat=heatBox(()=>refresh());
+  const phs=[physPanel('dfa',dicePilot),physPanel('charge',dicePilot)];dfaRefresh=()=>phs.forEach(x=>x.refresh());
+  const box=h('div');
+  box.append(h('div',{class:'sec'},h('h2',{textContent:'2D6 dice roller'}),
+    livePilots().length?field('Pilot rolling',sel):h('p',{class:'empty',textContent:'No living pilots on the roster. Add a pilot to roll for them.'}),grid,h('div',{class:'dh',style:'margin-top:18px',textContent:'Heat'}),heat));
+  box.append(h('div',{class:'sec'},h('h2',{textContent:'Target number to beat'}),modLine,
+    h('div',{class:'dcards'},gc.el,pc.el),
+    h('div',{class:'dwrap'},A,B,h('div',{},res,sub,verdict,h('div',{style:'margin-top:10px'},plain)))));
+  phs.forEach(x=>box.append(h('div',{class:'sec'},x.el)));
+  box.append(h('div',{class:'sec'},h('h2',{textContent:'Recent rolls'}),hl));
+  return box;
+}
+
+// ---- Hit location tab ----
+const HL_NAMES={HD:'Head',CT:'Center Torso',LT:'Left Torso',RT:'Right Torso',LA:'Left Arm',RA:'Right Arm',LL:'Left Leg',RL:'Right Leg'};
+const VEH_NAMES={FR:'Front',RR:'Rear',LS:'Left Side',RS:'Right Side',TU:'Turret'};
+const HL_STD={front:[null,null,'CT','RA','RA','RL','RT','CT','LT','LL','LA','LA','HD'],left:[null,null,'LT','LL','LA','LA','LL','LT','CT','RT','RA','RL','HD'],right:[null,null,'RT','RL','RA','RA','RL','RT','CT','LT','LA','LL','HD']};
+const HL_PUNCH={front:[null,'LA','LT','CT','RT','RA','HD'],left:[null,'LT','LT','CT','LA','LA','HD'],right:[null,'RT','RT','CT','RA','RA','HD']};
+const HL_KICK={front:[null,'RL','RL','RL','LL','LL','LL'],left:[null,'LL','LL','LL','LL','LL','LL'],right:[null,'RL','RL','RL','RL','RL','RL']};
+const HL_VEH={front:[null,null,'FR','FR','FR','RS','FR','FR','FR','LS','TU','TU','TU'],rear:[null,null,'RR','RR','RR','LS','RR','RR','RR','RS','TU','TU','TU'],left:[null,null,'LS','LS','LS','FR','LS','LS','LS','RR','TU','TU','TU'],right:[null,null,'RS','RS','RS','FR','RS','RS','RS','RR','TU','TU','TU']};
+const VEH_DAG=[3,4,5,9];
+const VEH_SIDE={front:'FR',rear:'RR',left:'LS',right:'RS'};
+const HL_SETS={std:['Weapon (2D6)',HL_STD,2,12],punch:['Punch (1D6)',HL_PUNCH,1,6],kick:['Kick (1D6)',HL_KICK,1,6]};
+const HL_DIRS=[['front','Front'],['rear','Rear'],['left','Left side'],['right','Right side']];
+const HL_CTR={HD:[120,20],CT:[120,90],LT:[70,90],RT:[170,90],LA:[28,120],RA:[212,120],LL:[98,240],RL:[142,240],FR:[120,62],RR:[120,276],LS:[51,170],RS:[189,170],TU:[120,170]};
+const HIT={target:'mech',turret:true,type:'std',dir:'front',a:null,b:null,sum:null,hist:[]};
+const hlCode=(t,type,dir,n,turret)=>{
+  if(t==='veh'){const c=HL_VEH[dir][n];return (c==='TU'&&turret===false)?VEH_SIDE[dir]:c}
+  const tb=HL_SETS[type][1][dir==='rear'?'front':dir];return tb?tb[n]:null};
+const hlIsCrit=(t,type,dir,n)=>t==='veh'?(n===2||n===12||(n===8&&(dir==='left'||dir==='right'))):(type==='std'&&n===2);
+const hlName=(t,type,dir,n,turret)=>{const c=hlCode(t,type,dir,n,turret);if(!c)return '';
+  if(t==='veh')return VEH_NAMES[c]+(VEH_DAG.includes(n)?' †':'');
+  return HL_NAMES[c]+(dir==='rear'&&['CT','LT','RT'].includes(c)?' (rear)':'')};
+const hlText=(t,type,dir,n,turret)=>hlName(t,type,dir,n,turret)+(hlIsCrit(t,type,dir,n)?' · possible critical hit':'');
+function crosshair(){const t=document.createElement('template');
+  t.innerHTML="<svg viewBox='0 0 24 24' width='18' height='18' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' aria-hidden='true' style='vertical-align:-3px'><circle cx='12' cy='12' r='6.5'/><path d='M12 1v7M12 16v7M1 12h7M16 12h7'/></svg>";
+  return t.content.firstElementChild}
+function dollSvg(kind){
+  const t=document.createElement('template');
+  const poly=pts=>`<polygon class='p' points='${pts}'/>`;
+  const grp=(loc,shape,txt)=>`<g data-loc='${loc}'>${shape}${txt}</g>`;
+  const lab=(x,y,s,extra)=>`<text x='${x}' y='${y}' ${extra||''}>${s}</text>`;
+  const rr=(loc,x,y)=>`<text class='rr' data-for='${loc}' x='${x}' y='${y+13}' style='display:none'>REAR</text>`;
+  if(kind==='veh'){
+    t.innerHTML=`<svg class='doll' viewBox='0 0 240 340' role='img' aria-label='Vehicle paper doll'>`
+      +`<rect class='dec' x='72' y='96' width='96' height='148'/>`
+      +grp('FR',poly('82,34 158,34 168,96 72,96'),lab(120,70,'FRONT'))
+      +grp('RR',poly('72,244 168,244 158,306 82,306'),lab(120,282,'REAR'))
+      +grp('LS',poly('34,50 68,50 68,290 34,290'),lab(51,174,'LEFT',`transform='rotate(-90 51 170)'`))
+      +grp('RS',poly('172,50 206,50 206,290 172,290'),lab(189,174,'RIGHT',`transform='rotate(90 189 170)'`))
+      +`<rect class='dec' x='114' y='84' width='12' height='46'/>`
+      +grp('TU',`<circle class='p' cx='120' cy='170' r='44'/>`,lab(120,174,'TURRET',`style='font-size:10px'`))
+      +`</svg>`;
+  }else{
+    const part=(loc,pts,x,y,r)=>grp(loc,poly(pts),lab(x,y,loc)+(r?rr(loc,x,y):''));
+    t.innerHTML=`<svg class='doll' viewBox='0 0 240 340' role='img' aria-label='BattleMech paper doll'>`
+      +`<polygon class='dec' points='92,134 148,134 146,150 94,150'/>`
+      +part('HD','106,6 134,6 142,34 98,34',120,26)
+      +part('CT','96,42 144,42 150,98 142,136 98,136 90,98',120,86,1)
+      +part('LT','56,48 88,44 86,98 94,136 66,130 50,92',70,86,1)
+      +part('RT','184,48 152,44 154,98 146,136 174,130 190,92',170,86,1)
+      +part('LA','14,58 50,52 46,120 42,178 20,184 8,118',28,124)
+      +part('RA','226,58 190,52 194,120 198,178 220,184 232,118',212,124)
+      +part('LL','82,148 118,148 117,238 114,326 74,326 78,240',98,244)
+      +part('RL','158,148 122,148 123,238 126,326 166,326 162,240',142,244)
+      +`</svg>`;
+  }
+  return t.content.firstElementChild;
+}
+function hitView(){
+  let rolling=false;
+  const A=h('div',{class:'die'}),B=h('div',{class:'die'});
+  let doll=dollSvg(HIT.target);const dollBox=h('div',{class:'dollbox'},doll);
+  const swapDoll=()=>{doll=dollSvg(HIT.target);dollBox.textContent='';dollBox.append(doll)};
+  const res=h('div',{class:'dres'}),loc=h('div',{class:'hloc'}),note=h('div',{class:'hint'}),tb=h('tbody'),hl=h('ul',{class:'log'}),ban=h('div',{class:'banner'}),foot=h('p',{class:'hint'}),hw=h('div',{class:'hitwrap'}),mk=(...k)=>{hw.append(...k);return hw};
+  const isV=()=>HIT.target==='veh';
+  const cfg=()=>isV()?HL_SETS.std:HL_SETS[HIT.type];
+  const two=()=>cfg()[2]===2;
+  const code=()=>HIT.sum?hlCode(HIT.target,HIT.type,HIT.dir,HIT.sum,HIT.turret):null;
+  const faces=()=>{dieFace(A,HIT.a||0);dieFace(B,two()?(HIT.b||0):0);B.style.opacity=two()?1:.25};
+  const paint=()=>{
+    const c=code();
+    doll.querySelectorAll('[data-loc]').forEach(g=>g.classList.toggle('hit',g.getAttribute('data-loc')===c));
+    const rear=!isV()&&HIT.dir==='rear'&&['CT','LT','RT'].includes(c);
+    doll.querySelectorAll('.rr').forEach(x=>{x.style.display=(rear&&x.getAttribute('data-for')===c)?'':'none'});
+    const special=!HIT.sum?'':(isV()?(HIT.sum===2?'crit':HIT.sum===12?'head':VEH_DAG.includes(HIT.sum)?'motive':''):(c==='HD'?'head':(HIT.type==='std'&&HIT.sum===2?'crit':'')));
+    doll.classList.remove('fx-crit','fx-head','fx-motive');doll.querySelectorAll('.fx').forEach(x=>x.remove());
+    hw.classList.remove('bg-crit','bg-head','bg-motive');
+    ban.textContent=special==='crit'?'✸ CRITICAL HIT ✸':special==='motive'?'⚠ MOTIVE CHECK ⚠':special==='head'?(isV()?(HIT.turret?'✸ TURRET CRITICAL ✸':'✸ CRITICAL HIT ✸'):'☠ HEAD SHOT ☠'):'';
+    ban.className='banner'+(special?' '+special:'');
+    res.className='dres'+(special?' '+special:'');
+    if(special){void doll.getBoundingClientRect();doll.classList.add('fx-'+special);if(special!=='motive')hw.classList.add('bg-'+special);
+      const p=HL_CTR[c],cols=special==='motive'?['#ffffff']:special==='crit'?['#ff5a5a','#ffd34d','#ffffff']:['#ffd34d','#ffffff','#ff9a3b'];
+      const tp=document.createElement('template');
+      tp.innerHTML="<svg xmlns='http://www.w3.org/2000/svg'><g class='fx'>"+cols.map((col,i)=>"<circle cx='"+p[0]+"' cy='"+p[1]+"' r='10' stroke='"+col+"' style='animation-delay:"+(i*.18)+"s'/>").join('')+"</g></svg>";
+      doll.append(tp.content.firstElementChild.firstElementChild);
+      try{navigator.vibrate&&navigator.vibrate(40)}catch(e){}}
+    res.textContent=HIT.sum||'—';
+    loc.textContent=HIT.sum?hlText(HIT.target,HIT.type,HIT.dir,HIT.sum,HIT.turret):'Roll to find the hit location';
+    const nt=[];
+    if(HIT.sum){
+      if(isV()){
+        if(hlIsCrit('veh',HIT.type,HIT.dir,HIT.sum))nt.push('Possible critical hit.');
+        if(VEH_DAG.includes(HIT.sum))nt.push('† Possible motive system damage.');
+        if(HIT.sum>=10&&!HIT.turret)nt.push('No turret: the attacked side takes the hit.');
+      }else{
+        if(c==='HD')nt.push('Head hit: check the pilot for damage.');
+        if(HIT.type==='std'&&HIT.sum===2)nt.push('Natural 2: roll for a possible critical hit.');
+      }
+    }
+    note.textContent=nt.join(' ');
+    Array.from(tb.children).forEach(tr=>tr.classList.toggle('cur',Number(tr.dataset.n)===HIT.sum));
+  };
+  const buildTable=()=>{tb.textContent='';const lo=cfg()[2],hi=cfg()[3];
+    for(let n=lo;n<=hi;n++){
+      const tr=h('tr',{title:'Tap to highlight this result',on:{click:()=>{HIT.a=null;HIT.b=null;HIT.sum=n;faces();paint()}}},
+        h('td',{textContent:String(n)}),h('td',{textContent:hlName(HIT.target,HIT.type,HIT.dir,n,HIT.turret)+(hlIsCrit(HIT.target,HIT.type,HIT.dir,n)?' *':'')}),
+        h('td',{class:'hint',textContent:(lo===2?Math.round(WAYS[n]/36*100):17)+'%'}));
+      tr.dataset.n=n;tb.append(tr)}
+    foot.textContent=isV()
+      ?'Ground combat vehicle table (tracked, wheeled, hover). * Rolls of 2 and 12, and 8 on a side attack, can cause critical hits. † Possible motive system damage. A side attack uses the side being hit. VTOLs, naval and other types use different tables. Tap a row to highlight a result you rolled with physical dice.'
+      :'Standard biped ’Mech tables. * Natural 2 can cause a critical hit. Rear attacks that hit a torso strike its rear armor. Tap a row to highlight a result you rolled with physical dice.'};
+  const drawHist=()=>{hl.textContent='';const dl=Object.fromEntries(HL_DIRS);
+    HIT.hist.forEach(r=>hl.append(h('li',{textContent:(r.t==='veh'?'Vehicle':'’Mech')+'  ·  '+dl[r.dir]+'  ·  '+(r.t==='veh'?'2D6':({std:'2D6',punch:'Punch',kick:'Kick'})[r.type])+'  ·  '+r.n+'  →  '+hlName(r.t,r.type,r.dir,r.n,r.turret)})))};
+  const reset=()=>{HIT.sum=null;HIT.a=null;HIT.b=null;buildTable();faces();paint()};
+  const seg=(opts,get,set)=>{const w=h('div',{class:'seg',role:'group'}),bs=[];
+    const on=()=>bs.forEach(([k,b])=>{const a=get()===k;b.classList.toggle('on',a);b.setAttribute('aria-pressed',String(a))});
+    opts.forEach(([k,l])=>{const b=h('button',{type:'button',textContent:l,on:{click:()=>{set(k);on();reset()}}});bs.push([k,b]);w.append(b)});
+    on();return w};
+  const btn=h('button',{class:'rollbtn',textContent:'Roll hit location'});
+  btn.addEventListener('click',()=>{if(rolling)return;rolling=true;btn.disabled=true;A.classList.add('rolling');if(two())B.classList.add('rolling');let n=0;
+    const iv=setInterval(()=>{dieFace(A,dieRoll());if(two())dieFace(B,dieRoll());if(++n<10)return;clearInterval(iv);
+      const a=dieRoll(),b=two()?dieRoll():0;HIT.a=a;HIT.b=b;HIT.sum=a+b;
+      A.classList.remove('rolling');B.classList.remove('rolling');faces();
+      HIT.hist.unshift({t:HIT.target,type:isV()?'std':HIT.type,dir:HIT.dir,n:HIT.sum,turret:HIT.turret});HIT.hist=HIT.hist.slice(0,8);
+      rolling=false;btn.disabled=false;paint();drawHist()},70)});
+  const ctrl=h('div',{class:'dgrid'});
+  const buildCtrl=()=>{ctrl.textContent='';
+    const dirSeg=seg(HL_DIRS,()=>HIT.dir,v=>{HIT.dir=v});
+    if(isV()){
+      ctrl.append(h('div',{},h('div',{class:'dh',textContent:'Attack direction'}),dirSeg,h('div',{style:'margin-top:12px'},btn)),
+        h('div',{},h('div',{class:'dh',textContent:'Turret'}),seg([[true,'Has turret'],[false,'No turret']],()=>HIT.turret,v=>{HIT.turret=v})));
+    }else{
+      ctrl.append(h('div',{},h('div',{class:'dh',textContent:'Attack type'}),seg(Object.keys(HL_SETS).map(k=>[k,HL_SETS[k][0]]),()=>HIT.type,v=>{HIT.type=v}),h('div',{style:'margin-top:12px'},btn)),
+        h('div',{},h('div',{class:'dh',textContent:'Attack direction'}),dirSeg));
+    }};
+  const targetSeg=seg([['mech','BattleMech'],['veh','Vehicle']],()=>HIT.target,v=>{HIT.target=v;swapDoll();buildCtrl()});
+  buildCtrl();buildTable();faces();paint();drawHist();
+  const box=h('div');
+  box.append(h('div',{class:'sec'},h('h2',{textContent:'Hit location'}),
+    h('div',{class:'dh',textContent:'Target'}),targetSeg,h('div',{style:'height:14px'}),ctrl));
+  box.append(h('div',{class:'sec'},
+    mk(dollBox,
+      h('div',{class:'hcol'},
+        h('div',{class:'dwrap'},A,B,res),ban,loc,note,
+        h('table',{class:'htbl'},h('thead',{},h('tr',{},h('th',{textContent:'Roll'}),h('th',{textContent:'Location'}),h('th',{textContent:'Chance'}))),tb),
+        foot))));
+  box.append(h('div',{class:'sec'},h('h2',{textContent:'Recent hits'}),hl));
+  return box;
+}
+
+// Import and export to a file
+const msg=t=>{$('#hm').textContent=t;clearTimeout(msg.t);msg.t=setTimeout(()=>$('#hm').textContent='',4000)};
+$('#exp').addEventListener('click',async()=>{
+  const data=JSON.stringify(S,null,1),name='merc-tracker-'+new Date().toISOString().slice(0,10)+'.json';
+  let dl=null;try{dl=window.claude&&window.claude.use?await window.claude.use('downloads'):null}catch(e){}
+  try{
+    if(dl){await dl.save({filename:name,data});msg('Export ready')}
+    else{const a=h('a',{href:URL.createObjectURL(new Blob([data],{type:'application/json'})),download:name});document.body.append(a);a.click();a.remove();msg('Exported')}
+  }catch(e){if(!e||e.code!=='declined'){$('#bkd').open=true;$('#bk').value=data;msg('Saving a file isn’t available here, copy the text below')}}
+});
+$('#impb').addEventListener('click',()=>$('#imp').click());
+$('#imp').addEventListener('change',e=>{
+  const f=e.target.files[0];e.target.value='';if(!f)return;
+  const fr=new FileReader();
+  fr.onload=()=>{try{
+    const r=JSON.parse(fr.result);if(!r||!Array.isArray(r.pilots))throw 0;
+    if(!confirm('Replace all current data with the contents of this file?'))return;
+    S=Object.assign({pilots:[],kills:[],sel:null,payee:null,tab:'pilots'},r);
+    S.pilots.forEach(p=>{p.injuries=p.injuries||[];while(p.injuries.length<5)p.injuries.push({on:false,note:''})});
+    save();render();msg('Imported '+r.pilots.length+' pilot'+(r.pilots.length===1?'':'s'));
+  }catch(x){msg('That file isn’t valid tracker data')}};
+  fr.readAsText(f);
+});
+
+// Backup and restore
+$('#bkd').addEventListener('toggle',()=>{$('#bk').value=JSON.stringify(S)});
+$('#bkc').addEventListener('click',()=>{
+  const t=$('#bk');t.value=JSON.stringify(S);t.select();
+  let ok=false;try{ok=document.execCommand('copy')}catch(e){}
+  $('#bkm').textContent=ok?'Copied':'Select the text and copy it'});
+$('#bkl').addEventListener('click',()=>{
+  try{const r=JSON.parse($('#bk').value);if(!r||!Array.isArray(r.pilots))throw 0;
+    S=Object.assign({pilots:[],kills:[],sel:null,payee:null,tab:'pilots'},r);
+    S.pilots.forEach(p=>{while(p.injuries.length<5)p.injuries.push({on:false,note:''})});
+    save();render();$('#bkm').textContent='Loaded'}
+  catch(e){$('#bkm').textContent='That text isn’t valid backup data'}});
+render();
+</script>
+</body>
+</html>
